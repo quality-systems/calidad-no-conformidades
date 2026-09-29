@@ -1,0 +1,66 @@
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f4f5f7;--card:#fff;--tx:#1b1f24;--mut:#667085;--ac:#c0392b;--bd:#d5dae1;--dg:#c62828}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111418;--card:#1b2027;--tx:#e8eaed;--mut:#9aa4b2;--ac:#e06a5c;--bd:#2f3742;--dg:#ef7b7b}}
+:root[data-theme="dark"]{--bg:#111418;--card:#1b2027;--tx:#e8eaed;--mut:#9aa4b2;--ac:#e06a5c;--bd:#2f3742;--dg:#ef7b7b}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:1.35rem;margin:4px 0 12px}
+h2{font-size:1.1rem;margin:0 0 12px}
+h3{font-size:.9rem;margin:0 0 10px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.top button{padding:6px 10px;flex:none}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:16px}
+label{display:block;font-size:.85rem;color:var(--mut);margin:10px 0 4px}
+input,textarea,select{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px}
+textarea{resize:vertical}
+button,.btn{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;padding:10px 14px;cursor:pointer;display:inline-block}
+button.primary{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+button.big{width:100%;padding:14px;font-size:1.05rem}
+button.ghost{background:transparent}
+button.danger{color:var(--dg)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.th{position:relative;width:96px}
+.th img{width:96px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--bd);display:block}
+.th div{display:flex;justify-content:space-between;margin-top:2px}
+.th button{padding:2px 8px;font-size:.85rem}
+
+/* Buscador y filtros de la lista */
+#buscador{margin-bottom:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 12px}
+.chip{border:1px solid var(--bd);background:var(--card);color:var(--mut);border-radius:999px;padding:6px 12px;font-size:.82rem;cursor:pointer}
+.chip.activo{background:var(--ac);border-color:var(--ac);color:#fff}
+
+/* Tarjetas de la lista de NC */
+.nc-item{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.nc-item .fila1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.nc-item .numero{font-weight:700}
+.nc-item .datos{color:var(--mut);font-size:.88rem;margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* Badges de estado (ciclo ISO 10.2) */
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:600;white-space:nowrap}
+.badge-abierta{background:#dbeafe;color:#1e40af}
+.badge-en_analisis{background:#fef3c7;color:#92400e}
+.badge-accion_en_curso{background:#dbeafe;color:#1e3a8a}
+.badge-en_verificacion{background:#ede9fe;color:#5b21b6}
+.badge-cerrada{background:#dcfce7;color:#166534}
+:root[data-theme="dark"] .badge-abierta,:root:not([data-theme="light"]) .badge-abierta{background:#1e3a5f;color:#93c5fd}
+:root[data-theme="dark"] .badge-en_analisis,:root:not([data-theme="light"]) .badge-en_analisis{background:#4a3510;color:#fde68a}
+:root[data-theme="dark"] .badge-accion_en_curso,:root:not([data-theme="light"]) .badge-accion_en_curso{background:#1e2f5f;color:#93c5fd}
+:root[data-theme="dark"] .badge-en_verificacion,:root:not([data-theme="light"]) .badge-en_verificacion{background:#3b2a5e;color:#ddd6fe}
+:root[data-theme="dark"] .badge-cerrada,:root:not([data-theme="light"]) .badge-cerrada{background:#14351f;color:#86efac}
+
+/* Badges de gravedad */
+.badge-gravedad{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:700}
+.badge-menor{background:#dcfce7;color:#166534}
+.badge-mayor{background:#fef3c7;color:#92400e}
+.badge-critica{background:#fee2e2;color:#991b1b}
+:root[data-theme="dark"] .badge-menor,:root:not([data-theme="light"]) .badge-menor{background:#14351f;color:#86efac}
+:root[data-theme="dark"] .badge-mayor,:root:not([data-theme="light"]) .badge-mayor{background:#4a3510;color:#fde68a}
+:root[data-theme="dark"] .badge-critica,:root:not([data-theme="light"]) .badge-critica{background:#4a1414;color:#fca5a5}
+
+#msg-global,#ficha-msg{margin-top:12px;font-size:.9rem;color:var(--mut);min-height:1.2em}

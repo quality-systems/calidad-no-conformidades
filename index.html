@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calidad · No Conformidades</title>
+<meta name="theme-color" content="#c0392b">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+<script>try{var t=localStorage.getItem('nc_tema');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<script src="jspdf.umd.min.js"></script>
+</head>
+<body>
+<main>
+<!-- Logo de la empresa para el PDF. Si no existe logo.png, se usa BRAND.empresa como texto (ver brand.js). -->
+<img id="logoImg" src="logo.png" alt="" hidden>
+
+<!-- ══ VISTA LISTA ══ -->
+<section id="vista-lista">
+  <div class="top">
+    <h1>No Conformidades</h1>
+    <button class="ghost" id="tema" aria-label="Cambiar tema claro/oscuro">🌙</button>
+  </div>
+
+  <input id="buscador" placeholder="Buscar por número, producto, lote o línea…" autocomplete="off">
+  <div class="chips" id="filtros-estado">
+    <button type="button" class="chip activo" data-estado="">Todas</button>
+    <button type="button" class="chip" data-estado="abierta">Abierta</button>
+    <button type="button" class="chip" data-estado="en_analisis">En análisis</button>
+    <button type="button" class="chip" data-estado="accion_en_curso">Acción en curso</button>
+    <button type="button" class="chip" data-estado="en_verificacion">En verificación</button>
+    <button type="button" class="chip" data-estado="cerrada">Cerrada</button>
+  </div>
+
+  <div id="lista"></div>
+  <p id="lista-vacia" hidden>No hay NC cargadas todavía.</p>
+
+  <button class="primary big" id="nueva-nc">+ Nueva No Conformidad</button>
+  <div class="row">
+    <button class="ghost" id="exportar-backup">⬇ Exportar backup</button>
+    <label class="btn ghost" style="margin:0">⬆ Importar backup<input type="file" id="importar-backup" accept="application/json" hidden></label>
+  </div>
+  <div id="msg-global" role="status"></div>
+</section>
+
+<!-- ══ VISTA FICHA (alta, edición y detalle de una NC) ══ -->
+<section id="vista-ficha" hidden>
+  <div class="top">
+    <button class="ghost" id="volver-lista">← Volver</button>
+    <span class="badge" id="ficha-estado"></span>
+  </div>
+  <h2 id="ficha-titulo">Nueva No Conformidad</h2>
+
+  <!-- Datos básicos -->
+  <div class="card">
+    <h3>Datos básicos</h3>
+    <label for="f-fecha">Fecha y hora de detección</label>
+    <input type="datetime-local" id="f-fecha">
+    <label for="f-detectadoPor">Detectado por</label>
+    <input id="f-detectadoPor" placeholder="Tu nombre">
+    <label for="f-lineaSector">Línea / sector</label>
+    <input id="f-lineaSector" list="dl-lineas" placeholder="Ej: Línea 2" autocomplete="off">
+    <datalist id="dl-lineas"></datalist>
+    <label for="f-producto">Producto</label>
+    <input id="f-producto">
+    <label for="f-lote">Lote</label>
+    <input id="f-lote">
+    <label for="f-tipo">Tipo de no conformidad</label>
+    <select id="f-tipo">
+      <option value="materia_prima">Materia prima</option>
+      <option value="proceso">Proceso</option>
+      <option value="producto_terminado">Producto terminado</option>
+      <option value="envase_rotulado">Envase / rotulado</option>
+      <option value="otro">Otro</option>
+    </select>
+    <input id="f-tipoDetalle" placeholder="Detalle del tipo" hidden>
+    <label for="f-descripcion">Descripción</label>
+    <textarea id="f-descripcion" rows="4" placeholder="Qué se detectó, dónde y cómo"></textarea>
+    <div class="row"><label class="btn" style="margin:0">📷 Agregar fotos<input type="file" id="f-fotos" accept="image/*" multiple hidden></label></div>
+    <div class="thumbs" id="f-thumbs"></div>
+    <label>Gravedad</label>
+    <div class="chips" id="f-gravedad">
+      <button type="button" class="chip" data-gravedad="menor">Menor</button>
+      <button type="button" class="chip" data-gravedad="mayor">Mayor</button>
+      <button type="button" class="chip" data-gravedad="critica">Crítica</button>
+    </div>
+    <button class="primary" id="guardar-basicos" style="margin-top:14px">Guardar datos básicos</button>
+  </div>
+
+  <!-- Acción inmediata -->
+  <div class="card" id="seccion-inmediata" hidden>
+    <h3>Acción inmediata (corrección)</h3>
+    <label for="f-inm-tipo">Acción tomada</label>
+    <select id="f-inm-tipo">
+      <option value="cuarentena">Cuarentena</option>
+      <option value="reproceso">Reproceso</option>
+      <option value="rechazo">Rechazo</option>
+      <option value="liberacion_concesion">Liberación por concesión</option>
+      <option value="otra">Otra</option>
+    </select>
+    <label for="f-inm-detalle">Detalle</label>
+    <textarea id="f-inm-detalle" rows="2"></textarea>
+    <button class="primary" id="guardar-inmediata">Guardar acción inmediata</button>
+  </div>
+
+  <!-- Acción correctiva -->
+  <div class="card" id="seccion-correctiva" hidden>
+    <h3>Acción correctiva</h3>
+    <label for="f-cor-descripcion">Descripción</label>
+    <textarea id="f-cor-descripcion" rows="3"></textarea>
+    <label for="f-cor-responsable">Responsable</label>
+    <input id="f-cor-responsable">
+    <label for="f-cor-fecha">Fecha compromiso</label>
+    <input type="date" id="f-cor-fecha">
+    <button class="primary" id="guardar-correctiva">Guardar acción correctiva</button>
+  </div>
+
+  <button class="primary big" id="pasar-verificacion" hidden>Pasar a verificación</button>
+
+  <!-- Verificación de eficacia -->
+  <div class="card" id="seccion-verificacion" hidden>
+    <h3>Verificación de eficacia</h3>
+    <label for="f-ver-fecha">Fecha de verificación</label>
+    <input type="date" id="f-ver-fecha">
+    <label for="f-ver-resultado">Resultado</label>
+    <select id="f-ver-resultado">
+      <option value="eficaz">Eficaz</option>
+      <option value="no_eficaz">No eficaz</option>
+    </select>
+    <label for="f-ver-comentario">Comentario</label>
+    <textarea id="f-ver-comentario" rows="2"></textarea>
+    <button class="primary" id="guardar-verificacion">Guardar verificación</button>
+  </div>
+
+  <div id="historial-verificaciones"></div>
+
+  <div class="row" style="margin-top:16px">
+    <button class="ghost" id="exportar-pdf" hidden>📄 Exportar PDF</button>
+    <button class="ghost danger" id="borrar-nc" hidden>🗑 Borrar NC</button>
+  </div>
+  <div id="ficha-msg" role="status"></div>
+</section>
+</main>
+<script src="brand.js"></script>
+<script src="js/db.js"></script>
+<script src="js/fotos.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/backup.js"></script>
+<script src="js/app.js"></script>
+</body></html>
