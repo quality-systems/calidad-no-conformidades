@@ -3,150 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Calidad · No Conformidades</title>
-<meta name="theme-color" content="#c0392b">
+<title>Registro de No Conformidades</title>
+<meta name="theme-color" content="#2a6a6a">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="style.css">
-<script>try{var t=localStorage.getItem('nc_tema');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<script src="jspdf.umd.min.js"></script>
+<script>try{if(localStorage.getItem('nc_tema')==='light')document.documentElement.classList.add('light')}catch(e){}</script>
+<script src="vendor/xlsx.full.min.js"></script>
 </head>
 <body>
-<main>
-<!-- Logo de la empresa para el PDF. Si no existe logo.png, se usa BRAND.empresa como texto (ver brand.js). -->
-<img id="logoImg" src="logo.png" alt="" hidden>
-
-<!-- ══ VISTA LISTA ══ -->
-<section id="vista-lista">
-  <div class="top">
-    <h1>No Conformidades</h1>
-    <button class="ghost" id="tema" aria-label="Cambiar tema claro/oscuro">🌙</button>
+<nav class="topbar no-print">
+  <div class="topbar-left">
+    <div class="brand" id="brand"></div>
+    <div class="topbar-vsep"></div>
+    <span class="topbar-title">Registro de NCs</span>
   </div>
-
-  <input id="buscador" placeholder="Buscar por número, producto, lote o línea…" autocomplete="off">
-  <div class="chips" id="filtros-estado">
-    <button type="button" class="chip activo" data-estado="">Todas</button>
-    <button type="button" class="chip" data-estado="abierta">Abierta</button>
-    <button type="button" class="chip" data-estado="en_analisis">En análisis</button>
-    <button type="button" class="chip" data-estado="accion_en_curso">Acción en curso</button>
-    <button type="button" class="chip" data-estado="en_verificacion">En verificación</button>
-    <button type="button" class="chip" data-estado="cerrada">Cerrada</button>
+  <div class="topbar-right">
+    <button id="btn-theme" class="btn-t" aria-label="Cambiar tema claro/oscuro"></button>
   </div>
+</nav>
 
-  <div id="lista"></div>
-  <p id="lista-vacia" hidden>No hay NC cargadas todavía.</p>
+<div class="page">
 
-  <button class="primary big" id="nueva-nc">+ Nueva No Conformidad</button>
-  <div class="row">
-    <button class="ghost" id="exportar-backup">⬇ Exportar backup</button>
-    <label class="btn ghost" style="margin:0">⬆ Importar backup<input type="file" id="importar-backup" accept="application/json" hidden></label>
-  </div>
-  <div id="msg-global" role="status"></div>
-</section>
-
-<!-- ══ VISTA FICHA (alta, edición y detalle de una NC) ══ -->
-<section id="vista-ficha" hidden>
-  <div class="top">
-    <button class="ghost" id="volver-lista">← Volver</button>
-    <span class="badge" id="ficha-estado"></span>
-  </div>
-  <h2 id="ficha-titulo">Nueva No Conformidad</h2>
-
-  <!-- Datos básicos -->
-  <div class="card">
-    <h3>Datos básicos</h3>
-    <label for="f-fecha">Fecha y hora de detección</label>
-    <input type="datetime-local" id="f-fecha">
-    <label for="f-detectadoPor">Detectado por</label>
-    <input id="f-detectadoPor" placeholder="Tu nombre">
-    <label for="f-lineaSector">Línea / sector</label>
-    <input id="f-lineaSector" list="dl-lineas" placeholder="Ej: Línea 2" autocomplete="off">
-    <datalist id="dl-lineas"></datalist>
-    <label for="f-producto">Producto</label>
-    <input id="f-producto">
-    <label for="f-lote">Lote</label>
-    <input id="f-lote">
-    <label for="f-tipo">Tipo de no conformidad</label>
-    <select id="f-tipo">
-      <option value="materia_prima">Materia prima</option>
-      <option value="proceso">Proceso</option>
-      <option value="producto_terminado">Producto terminado</option>
-      <option value="envase_rotulado">Envase / rotulado</option>
-      <option value="otro">Otro</option>
-    </select>
-    <input id="f-tipoDetalle" placeholder="Detalle del tipo" hidden>
-    <label for="f-descripcion">Descripción</label>
-    <textarea id="f-descripcion" rows="4" placeholder="Qué se detectó, dónde y cómo"></textarea>
-    <div class="row"><label class="btn" style="margin:0">📷 Agregar fotos<input type="file" id="f-fotos" accept="image/*" multiple hidden></label></div>
-    <div class="thumbs" id="f-thumbs"></div>
-    <label>Gravedad</label>
-    <div class="chips" id="f-gravedad">
-      <button type="button" class="chip" data-gravedad="menor">Menor</button>
-      <button type="button" class="chip" data-gravedad="mayor">Mayor</button>
-      <button type="button" class="chip" data-gravedad="critica">Crítica</button>
+  <!-- Banner de importación desde REG-01 -->
+  <div id="import-banner" class="no-print" style="display:none;background:rgba(0,200,150,.07);border:1.5px solid rgba(0,200,150,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;align-items:center;gap:12px;flex-wrap:wrap">
+    <span style="font-size:18px">📥</span>
+    <div style="flex:1;min-width:0">
+      <div style="font-weight:700;color:var(--accent);font-size:.8rem;letter-spacing:.04em" id="import-titulo">NC pendientes del REG-01</div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:2px" id="import-detalle"></div>
     </div>
-    <button class="primary" id="guardar-basicos" style="margin-top:14px">Guardar datos básicos</button>
+    <button id="btn-importar" style="background:var(--teal);color:#fff;border:none;border-radius:5px;padding:6px 14px;font-weight:700;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;font-family:inherit">✔ Importar</button>
+    <button id="btn-descartar" style="background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:5px;padding:6px 10px;font-size:.68rem;cursor:pointer;white-space:nowrap;font-family:inherit">✕ Descartar</button>
   </div>
 
-  <!-- Acción inmediata -->
-  <div class="card" id="seccion-inmediata" hidden>
-    <h3>Acción inmediata (corrección)</h3>
-    <label for="f-inm-tipo">Acción tomada</label>
-    <select id="f-inm-tipo">
-      <option value="cuarentena">Cuarentena</option>
-      <option value="reproceso">Reproceso</option>
-      <option value="rechazo">Rechazo</option>
-      <option value="liberacion_concesion">Liberación por concesión</option>
-      <option value="otra">Otra</option>
-    </select>
-    <label for="f-inm-detalle">Detalle</label>
-    <textarea id="f-inm-detalle" rows="2"></textarea>
-    <button class="primary" id="guardar-inmediata">Guardar acción inmediata</button>
+  <!-- Encabezado: solo se ve al imprimir -->
+  <div id="doc-header-print" style="display:none">
+    <div class="print-header-left"><img id="print-logo" src="logo.png" alt="" style="display:block;height:60px;max-width:160px;width:auto;object-fit:contain"></div>
+    <div class="print-title">
+      <span class="pt-main">Registro de No Conformidades</span>
+      <span class="pt-sub" id="ph-proceso"></span>
+    </div>
+    <div class="print-header-right">
+      <div class="meta-row"><span class="meta-label">Código</span><span class="meta-val" id="ph-codigo"></span></div>
+      <div class="meta-row"><span class="meta-label">Versión</span><span class="meta-val" id="ph-version"></span></div>
+      <div class="meta-row"><span class="meta-label">Período</span><span class="meta-val" id="periodo-val"></span></div>
+      <div class="meta-row"><span class="meta-label">Área</span><span class="meta-val" id="ph-area"></span></div>
+      <div class="meta-row"><span class="meta-label">Elab.</span><span class="meta-val" id="ph-elaboro"></span></div>
+      <div class="meta-row"><span class="meta-label">Aprob.</span><span class="meta-val" id="ph-aprobo"></span></div>
+    </div>
   </div>
 
-  <!-- Acción correctiva -->
-  <div class="card" id="seccion-correctiva" hidden>
-    <h3>Acción correctiva</h3>
-    <label for="f-cor-descripcion">Descripción</label>
-    <textarea id="f-cor-descripcion" rows="3"></textarea>
-    <label for="f-cor-responsable">Responsable</label>
-    <input id="f-cor-responsable">
-    <label for="f-cor-fecha">Fecha compromiso</label>
-    <input type="date" id="f-cor-fecha">
-    <button class="primary" id="guardar-correctiva">Guardar acción correctiva</button>
+  <div class="kpi-bar">
+    <div class="kpi-card" id="kpi1-card">
+      <div class="kpi-label">AQ-IND-01 · NC Totales del mes</div>
+      <div class="kpi-val" id="kpi1">0</div>
+      <div class="kpi-sub">eventos registrados</div>
+    </div>
+    <div class="kpi-card" id="kpi2-card">
+      <div class="kpi-label">AQ-IND-02 · Tasa litros NC</div>
+      <div class="kpi-val" id="kpi2">—</div>
+      <div class="kpi-sub">meta: &lt; 5%</div>
+    </div>
+    <div class="kpi-card" id="kpi3-card">
+      <div class="kpi-label">AQ-IND-03 · Desvío más frecuente</div>
+      <div class="kpi-val" style="font-size:13px" id="kpi3">—</div>
+      <div class="kpi-sub" id="kpi3-sub">sin datos</div>
+    </div>
+    <div class="kpi-card" id="kpi4-card">
+      <div class="kpi-label">AQ-IND-04 · Reprocesos en plazo</div>
+      <div class="kpi-val" id="kpi4">—</div>
+      <div class="kpi-sub">meta: &gt; 90%</div>
+    </div>
   </div>
 
-  <button class="primary big" id="pasar-verificacion" hidden>Pasar a verificación</button>
-
-  <!-- Verificación de eficacia -->
-  <div class="card" id="seccion-verificacion" hidden>
-    <h3>Verificación de eficacia</h3>
-    <label for="f-ver-fecha">Fecha de verificación</label>
-    <input type="date" id="f-ver-fecha">
-    <label for="f-ver-resultado">Resultado</label>
-    <select id="f-ver-resultado">
-      <option value="eficaz">Eficaz</option>
-      <option value="no_eficaz">No eficaz</option>
-    </select>
-    <label for="f-ver-comentario">Comentario</label>
-    <textarea id="f-ver-comentario" rows="2"></textarea>
-    <button class="primary" id="guardar-verificacion">Guardar verificación</button>
+  <div class="sev-bar">
+    <div class="sev-box sev-leve"><span class="sev-num" id="sev-leve">0</span>🟢 Leve</div>
+    <div class="sev-box sev-mod"><span class="sev-num" id="sev-mod">0</span>🟡 Moderado</div>
+    <div class="sev-box sev-crit"><span class="sev-num" id="sev-crit">0</span>🔴 Crítico</div>
   </div>
 
-  <div id="historial-verificaciones"></div>
-
-  <div class="row" style="margin-top:16px">
-    <button class="ghost" id="exportar-pdf" hidden>📄 Exportar PDF</button>
-    <button class="ghost danger" id="borrar-nc" hidden>🗑 Borrar NC</button>
+  <div class="toolbar no-print">
+    <div class="toolbar-row">
+      <button class="btn btn-add" id="btn-add">+ Agregar fila</button>
+      <button class="btn" id="btn-guardar" style="background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700">💾 Guardar</button>
+      <select id="sel-del-row" class="btn" style="min-width:90px;cursor:pointer" title="Seleccionar NC a anular"></select>
+      <button class="btn btn-del" id="btn-anular">⊘ Anular NC</button>
+      <button class="btn btn-print" id="btn-print">🖨 Imprimir / PDF</button>
+      <button class="btn btn-export" id="btn-excel">⬇ Descargar Excel</button>
+    </div>
+    <div class="toolbar-row">
+      <button class="btn" id="btn-backup">💾 Exportar backup</button>
+      <label class="btn" style="margin:0">⬆ Importar backup<input type="file" id="file-backup" accept="application/json,.json" hidden></label>
+      <button class="btn btn-clear" id="btn-dups">🧹 Quitar duplicados</button>
+      <button class="btn btn-clear" id="btn-clear">🗑 Borrar todo</button>
+      <button class="btn" id="btn-cod">⚙️ Codificación</button>
+    </div>
   </div>
-  <div id="ficha-msg" role="status"></div>
-</section>
-</main>
+
+  <div id="panel-codificacion">
+    <div class="pcod-row">
+      <div class="pcod-item"><span class="pcod-label">Código</span><span class="pcod-val" id="pc-codigo"></span></div>
+      <div class="pcod-item"><span class="pcod-label">Versión</span><span class="pcod-val" id="pc-version"></span></div>
+      <div class="pcod-item"><span class="pcod-label">Área</span><span class="pcod-val" id="pc-area"></span></div>
+      <div class="pcod-item"><span class="pcod-label">Elaborado por</span><span class="pcod-val" id="pc-elaboro"></span></div>
+      <div class="pcod-item"><span class="pcod-label">Aprobado por</span><span class="pcod-val" id="pc-aprobo"></span></div>
+      <div class="pcod-item"><span class="pcod-label">Proceso</span><span class="pcod-val" id="pc-proceso"></span></div>
+      <div class="pcod-item"><label class="pcod-label" for="in-periodo">Período</label><input type="text" id="in-periodo" placeholder="(mes y año actual)" style="width:150px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;font-size:11px"></div>
+    </div>
+    <div style="margin-top:6px;color:var(--muted);font-size:10px">Los datos de codificación se editan en <b>brand.js</b>.</div>
+  </div>
+
+  <div class="save-bar no-print">
+    <span class="save-dot" id="saveDot"></span>
+    <span class="save-msg" id="saveMsg">Cargando datos guardados...</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th class="c0">#</th>
+        <th class="c1">Fecha<br>Detección</th>
+        <th class="c2">N° Lote</th>
+        <th class="c3">Producto</th>
+        <th class="c4">Tipo de Desvío<br><span class="kpi-tag">AQ-IND-03</span></th>
+        <th class="c5">Gravedad</th>
+        <th class="c5b">Detección<br><span class="kpi-tag">EXCEL</span></th>
+        <th class="c6">Descripción de la NC</th>
+        <th class="c7">L. NC<br><span class="kpi-tag">AQ-IND-02</span></th>
+        <th class="c8">L. Tot.<br><span class="kpi-tag">AQ-IND-02</span></th>
+        <th class="c9">Acción Correctiva /<br>Disposición</th>
+        <th class="c10">Plazo<br>Reproceso<br><span class="kpi-tag">AQ-IND-04</span></th>
+        <th class="c11">Estado<br><span class="kpi-tag">AQ-IND-01/04</span></th>
+        <th class="c12">Fecha<br>Cierre<br><span class="kpi-tag">AQ-IND-04</span></th>
+        <th class="c13">Pallets<br>NC</th>
+        <th class="c14">Responsable<br><span class="kpi-tag">ISO 10.2.2</span></th>
+        <th class="c15">Verif. Efic.<br><span class="kpi-tag">ISO 10.2.2</span></th>
+      </tr>
+    </thead>
+    <tbody id="tBody"></tbody>
+  </table>
+  <p id="vacio" class="no-print" style="text-align:center;color:var(--muted);padding:18px 0" hidden>Todavía no hay NC cargadas. Tocá «+ Agregar fila».</p>
+
+  <div class="legend">
+    <strong>Tipos de desvío y gravedad predeterminada:</strong>
+    <div class="legend-row" id="legend-tipos"></div>
+    <strong>Campos obligatorios ISO 9001:2015 cláusula 10.2.2:</strong>
+    <div class="legend-row">
+      <span>✅ <strong>Verif. Eficacia</strong> — confirma que la acción eliminó la causa · <span class="badge b-efok">Eficaz</span> <span class="badge b-efno">No eficaz</span> <span class="badge b-efpend">Pendiente</span></span>
+    </div>
+    <strong>Criterio de registro (una NC por lote · evento · tipo de desvío):</strong>
+    <div class="legend-row">
+      <span>Si en un mismo lote hay dos tipos de desvío distintos → dos filas separadas</span>
+      <span>Si el desvío ocurrió en otro turno o fue detectado en otra fecha → nueva NC</span>
+    </div>
+    <strong>Estados:</strong>
+    <div class="legend-row">
+      <span><span class="badge b-pend">Pendiente</span> NC abierta</span>
+      <span><span class="badge b-proc">En proceso</span> Reproceso en curso</span>
+      <span><span class="badge b-final">Finalizado</span> NC cerrada y verificada</span>
+      <span><span class="badge b-cancel">Anulado</span> Error de carga</span>
+    </div>
+  </div>
+
+  <div class="sigs">
+    <div class="sig-box">Checker de Calidad<br><br>&nbsp;</div>
+    <div class="sig-box">Coordinadora de Calidad<br><br>&nbsp;</div>
+    <div class="sig-box">Revisión SGC / Gerencia<br><br>&nbsp;</div>
+  </div>
+</div>
+
+<!-- Segunda hoja de impresión: Acciones Correctivas / Disposición -->
+<div id="print-acciones" class="print-only"></div>
+
+<div class="toast" id="toast"></div>
+
 <script src="brand.js"></script>
 <script src="js/db.js"></script>
-<script src="js/fotos.js"></script>
-<script src="js/pdf.js"></script>
 <script src="js/backup.js"></script>
 <script src="js/app.js"></script>
-</body></html>
+</body>
+</html>

@@ -1,13 +1,13 @@
-// Personalización de marca del PDF. Editá estos valores para tu empresa.
-// No hace falta tocar el resto del código para esto (mismo patrón que informeCalidad).
+// Datos de la empresa y de la codificación del registro. Editá estos valores y listo:
+// se usan en el encabezado de impresión, la segunda hoja y el Excel (mismo patrón que informeCalidad).
+// El logo es logo.png (misma carpeta); si no carga, se usa `empresa` como texto.
 const BRAND = {
-  // Reemplazá con un archivo logo.png (misma carpeta) para usar el logo real.
-  // Si no existe logo.png, se usa este nombre como texto en el encabezado del PDF.
-  empresa: 'MI EMPRESA',
-
-  // Color de acento: la línea bajo el título de cada NC. Formato hexadecimal.
-  colorAcento: '#c0392b',
-
-  // Texto fijo del pie de página del PDF.
-  departamento: 'DEPARTAMENTO DE CALIDAD'
+  empresa: 'AGROFACIL',
+  codigo: 'SGC-RNC-01',
+  version: '00',
+  area: 'Aseg. Calidad',
+  elaboro: 'Maximiliano Roca',
+  aprobo: 'Evelin Alcaraz',
+  proceso: 'Control de Línea y Producto Final — 8170 PRO-02',
+  plazoDias: 5   // días hábiles para el plazo de reproceso automático
 };
